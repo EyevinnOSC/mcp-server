@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Context, listSubscriptions } from '@osaas/client-core';
+import { Context } from '@osaas/client-core';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -16,6 +16,11 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import { CreateDatabaseSchema } from './schemas.js';
 import { z } from 'zod';
 import { createValkeyInstance } from './resources/valkey_io_valkey.js';
+import { handleOscResourceRequest, listOscResources } from './resources/osc.js';
+import {
+  handleLocalResourceRequest,
+  listLocalResources
+} from './resources/local.js';
 
 dotenv.config();
 
@@ -67,40 +72,32 @@ class OscMcpServer {
 
   private setupResourceHandlers(): void {
     this.server.setRequestHandler(ListResourcesRequestSchema, async () => ({
-      resources: [
-        {
-          uri: `eyevinnosc://catalog/myactiveservices`,
-          name: 'My active services',
-          description:
-            'List all my active services in Eyevinn Open Source Cloud',
-          mimeType: 'application/json'
-        }
-      ]
+      resources: listOscResources().concat(listLocalResources())
     }));
 
     this.server.setRequestHandler(
       ReadResourceRequestSchema,
       async (request) => {
         const url = new URL(request.params.uri);
-        if (url.pathname === '/myactiveservices') {
-          const subscriptions = await listSubscriptions(this.context);
-          const activeSubscriptions = subscriptions.map((subscription) => ({
-            serviceId: subscription.serviceId
-          }));
-          return {
-            contents: [
-              {
-                uri: request.params.uri,
-                mimeType: 'application/json',
-                text: JSON.stringify(activeSubscriptions, null, 2)
-              }
-            ]
-          };
-        } else {
-          throw new McpError(
-            ErrorCode.InvalidRequest,
-            `Unknown resource: ${request.params.uri}`
-          );
+        switch (url.protocol) {
+          case 'eyevinnosc:':
+            return await handleOscResourceRequest(
+              url.hostname,
+              url.pathname,
+              request,
+              this.context
+            );
+          case 'local:':
+            return await handleLocalResourceRequest(
+              url.hostname,
+              url.pathname,
+              request
+            );
+          default:
+            throw new McpError(
+              ErrorCode.InvalidRequest,
+              `Unknown resource: ${request.params.uri}`
+            );
         }
       }
     );
