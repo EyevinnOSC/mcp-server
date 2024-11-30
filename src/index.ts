@@ -12,7 +12,6 @@ import {
   ReadResourceRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
 import dotenv from 'dotenv';
-import { zodToJsonSchema } from 'zod-to-json-schema';
 import { CreateDatabaseSchema } from './schemas.js';
 import { z } from 'zod';
 import { createValkeyInstance } from './resources/valkey_io_valkey.js';
@@ -21,6 +20,7 @@ import {
   handleLocalResourceRequest,
   listLocalResources
 } from './resources/local.js';
+import { handleOscToolRequest, listOscTools } from './tools/osc.js';
 
 dotenv.config();
 
@@ -105,56 +105,19 @@ class OscMcpServer {
 
   private setupToolHandlers(): void {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
-      tools: [
-        {
-          name: 'create_db',
-          description: 'Create a new database instance',
-          inputSchema: zodToJsonSchema(CreateDatabaseSchema)
-        }
-      ]
+      tools: listOscTools()
     }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      try {
-        if (!request.params.arguments) {
-          throw new Error('Arguments are required');
-        }
-
-        switch (request.params.name) {
-          case 'create_db': {
-            const args = CreateDatabaseSchema.parse(request.params.arguments);
-            const connectionUrl = await this.createDatabase(
-              args.name,
-              args.type
-            );
-            return { toolResult: connectionUrl };
-          }
-
-          default:
-            throw new Error(`Unknown tool: ${request.params.name}`);
-        }
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          throw new Error(
-            `Invalid arguments: ${error.errors
-              .map((e) => `${e.path.join('.')}: ${e.message}`)
-              .join(', ')}`
-          );
-        }
-        throw error;
+      if (request.params.name.startsWith('osc_')) {
+        return await handleOscToolRequest(request, this.context);
+      } else {
+        throw new McpError(
+          ErrorCode.InvalidRequest,
+          `Unknown tool: ${request.params.name}`
+        );
       }
     });
-  }
-
-  private async createDatabase(name: string, type: string): Promise<string> {
-    switch (type) {
-      case 'MemoryDb': {
-        const connectionUrl = await createValkeyInstance(this.context, name);
-        return connectionUrl;
-      }
-      default:
-        throw new Error(`Unknown database type: ${type}`);
-    }
   }
 
   async run(): Promise<void> {

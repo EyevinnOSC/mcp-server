@@ -18,7 +18,7 @@ export async function createValkeyInstance(ctx: Context, name: string) {
   if (!(await createInstance(ctx, SERVICE_ID, serviceAccessToken, { name }))) {
     throw new Error(`Failed to create instance with name ${name}`);
   }
-  await delay(5000);
+  await delay(7000);
 
   const ports = await getPortsForInstance(
     ctx,
