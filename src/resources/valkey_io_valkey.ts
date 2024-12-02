@@ -1,24 +1,28 @@
+import { Context, getInstance, getPortsForInstance } from '@osaas/client-core';
+import { delay, waitForInstanceReady } from './util.js';
 import {
-  Context,
-  createInstance,
-  getInstance,
-  getPortsForInstance
-} from '@osaas/client-core';
-import { delay } from './util.js';
+  ValkeyIoValkey,
+  ValkeyIoValkeyConfig,
+  createValkeyIoValkeyInstance
+} from '@osaas/client-services';
 
 const SERVICE_ID = 'valkey-io-valkey';
 
 export async function createValkeyInstance(ctx: Context, name: string) {
   const serviceAccessToken = await ctx.getServiceAccessToken(SERVICE_ID);
-  const instance = await getInstance(ctx, SERVICE_ID, name, serviceAccessToken);
-  if (instance) {
-    throw new Error(`Instance with name ${name} already exists`);
+  let instance: ValkeyIoValkey = await getInstance(
+    ctx,
+    SERVICE_ID,
+    name,
+    serviceAccessToken
+  );
+  if (!instance) {
+    const config: ValkeyIoValkeyConfig = { name };
+    const newInstance = await createValkeyIoValkeyInstance(ctx, config);
+    await waitForInstanceReady(SERVICE_ID, name, ctx);
+    await delay(2000);
+    instance = newInstance;
   }
-
-  if (!(await createInstance(ctx, SERVICE_ID, serviceAccessToken, { name }))) {
-    throw new Error(`Failed to create instance with name ${name}`);
-  }
-  await delay(7000);
 
   const ports = await getPortsForInstance(
     ctx,

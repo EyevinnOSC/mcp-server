@@ -6,8 +6,11 @@ MCP Server for [Eyevinn Open Source Cloud](www.osaas.io) API, enabling creation 
 
 - **Database Setup**: Create and setup an SQL-, NoSQL- or memory-database based on open source made available as an open web service.
 - **Storage Setup**: Create an S3 compatible storage bucket based on open source made available as an open web service.
+- **VOD Pipeline**: Create a pipeline for transcoding and packaging files for VOD distribution.
 
 ![screenshot](screenshot.png)
+
+![screenshot-vod](screenshot-vod.png)
 
 ## Tools
 
@@ -22,6 +25,12 @@ MCP Server for [Eyevinn Open Source Cloud](www.osaas.io) API, enabling creation 
    - Inputs:
      - `name` (string): Name of bucket
    - Returns: Endpoint and credentials to bucket
+3. `osc_create_vod_pipeline`
+   - Create a VOD transcoding and packaging pipeline
+   - Inputs:
+     - `name` (string): Name of pipeline
+     - `output` (string): Name of bucket to place the files
+   - Returns: REST Endpoint for submitting jobs.
 
 ## Setup
 
