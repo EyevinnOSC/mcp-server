@@ -1,9 +1,10 @@
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { z } from 'zod';
-import { CreateDatabaseSchema } from '../schemas.js';
+import { CreateBucketSchema, CreateDatabaseSchema } from '../schemas.js';
 import { createValkeyInstance } from '../resources/valkey_io_valkey.js';
 import { Context } from '@osaas/client-core';
 import { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
+import { createMinioInstance } from '../resources/minio_minio.js';
 
 export function listOscTools() {
   return [
@@ -12,6 +13,12 @@ export function listOscTools() {
       description:
         'Create a new database instance in Eyevinn Open Source Cloud',
       inputSchema: zodToJsonSchema(CreateDatabaseSchema)
+    },
+    {
+      name: 'osc_create_bucket',
+      description:
+        'Create an S3 compatible bucket in Eyevinn Open Source Cloud',
+      inputSchema: zodToJsonSchema(CreateBucketSchema)
     }
   ];
 }
@@ -34,6 +41,14 @@ export async function handleOscToolRequest(
           context
         );
         return { toolResult: connectionUrl };
+      }
+      case 'osc_create_bucket': {
+        const args = CreateBucketSchema.parse(request.params.arguments);
+        const { endpoint, accessKeyId, secretAccessKey } = await createBucket(
+          args.name,
+          context
+        );
+        return { toolResult: { endpoint, accessKeyId, secretAccessKey } };
       }
 
       default:
@@ -64,4 +79,8 @@ export async function createDatabase(
     default:
       throw new Error(`Unknown database type: ${type}`);
   }
+}
+
+export async function createBucket(name: string, context: Context) {
+  return await createMinioInstance(context, name);
 }

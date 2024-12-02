@@ -6,3 +6,8 @@ export const CreateDatabaseSchema = z.object({
 });
 
 export type CreateDatabaseSchema = z.infer<typeof CreateDatabaseSchema>;
+
+export const CreateBucketSchema = z.object({
+  name: z.string().describe('Name of the bucket')
+});
+export type CreateBucketSchema = z.infer<typeof CreateBucketSchema>;
