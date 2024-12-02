@@ -15,6 +15,9 @@
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
     "watch": "tsc --watch",
+    "lint": "eslint .",
+    "pretty": "prettier --check --ignore-unknown .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "postversion": "git push && git push --tags"
   },
   "dependencies": {

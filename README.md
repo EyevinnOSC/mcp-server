@@ -38,6 +38,7 @@ npm install -g @osaas/mcp-server
 - Copy the Personal Access Token
 
 ### Usage with Claude Desktop
+
 To use this with Claude Desktop, add the following to your `claude_desktop_config.json`:
 
 ```json
@@ -45,10 +46,7 @@ To use this with Claude Desktop, add the following to your `claude_desktop_confi
   "mcpServers": {
     "eyevinn-osc": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@osaas/mcp-server"
-      ],
+      "args": ["-y", "@osaas/mcp-server"],
       "env": {
         "OSC_ACCESS_TOKEN": "<YOUR_TOKEN>"
       }
@@ -56,6 +54,7 @@ To use this with Claude Desktop, add the following to your `claude_desktop_confi
   }
 }
 ```
+
 ## Development
 
 ```

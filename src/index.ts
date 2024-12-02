@@ -12,9 +12,6 @@ import {
   ReadResourceRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
 import dotenv from 'dotenv';
-import { CreateDatabaseSchema } from './schemas.js';
-import { z } from 'zod';
-import { createValkeyInstance } from './resources/valkey_io_valkey.js';
 import { handleOscResourceRequest, listOscResources } from './resources/osc.js';
 import {
   handleLocalResourceRequest,
