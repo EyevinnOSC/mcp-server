@@ -5,7 +5,7 @@ MCP Server for [Eyevinn Open Source Cloud](www.osaas.io) API, enabling creation 
 ### Features
 
 - **Database Setup**: Create and setup an SQL-, NoSQL- or memory-database based on open source made available as an open web service.
-- **Storage Setup**: Create an S3 compatiable storage bucket based on open source made available as an open web service.
+- **Storage Setup**: Create an S3 compatible storage bucket based on open source made available as an open web service.
 
 ![screenshot](screenshot.png)
 
