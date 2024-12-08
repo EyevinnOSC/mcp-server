@@ -6,7 +6,17 @@ import { randomBytes } from 'crypto';
 
 const SERVICE_ID = 'minio-minio';
 
-export async function createMinioInstance(ctx: Context, name: string) {
+export interface MinioBucket {
+  name: string;
+  endpoint: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+}
+
+export async function createMinioInstance(
+  ctx: Context,
+  name: string
+): Promise<MinioBucket> {
   const serviceAccessToken = await ctx.getServiceAccessToken(SERVICE_ID);
   let instance: MinioMinio = await getInstance(
     ctx,
@@ -45,6 +55,7 @@ export async function createMinioInstance(ctx: Context, name: string) {
   }
 
   return {
+    name: instance.name,
     endpoint: instance.url,
     accessKeyId: 'root',
     secretAccessKey: instance.RootPassword || ''

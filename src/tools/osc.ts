@@ -4,7 +4,8 @@ import {
   CreateBucketSchema,
   CreateDatabaseSchema,
   CreateVodPipelineSchema,
-  RemoveVodPipelineSchema
+  RemoveVodPipelineSchema,
+  StorageBucket
 } from '../schemas.js';
 import { createValkeyInstance } from '../resources/valkey_io_valkey.js';
 import { Context, removeInstance } from '@osaas/client-core';
@@ -73,6 +74,7 @@ export async function handleOscToolRequest(
         const args = CreateVodPipelineSchema.parse(request.params.arguments);
         const pipeline = await createVodPipeline(
           args.name,
+          args.redisUrl,
           args.output,
           context
         );
@@ -122,18 +124,24 @@ export async function createDatabase(
   }
 }
 
-export async function createBucket(name: string, context: Context) {
+export async function createBucket(
+  name: string,
+  context: Context
+): Promise<StorageBucket> {
   return await createMinioInstance(context, name);
+}
+
+export async function createRedisInstance(name: string, context: Context) {
+  return await createValkeyInstance(context, name);
 }
 
 export async function createVodPipeline(
   name: string,
-  output: string,
+  redisUrl: string,
+  storage: StorageBucket,
   context: Context
 ) {
-  const storage = await createMinioInstance(context, output);
   const transcoder = await createEncoreInstance(context, name);
-  const redisUrl = await createValkeyInstance(context, name);
   const encoreCallback = await createEncoreCallbackListenerInstance(
     context,
     name,
