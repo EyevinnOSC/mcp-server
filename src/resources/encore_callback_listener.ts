@@ -45,3 +45,22 @@ export async function createEncoreCallbackListenerInstance(
     url: new URL('/encoreCallback', instance.url).toString()
   };
 }
+
+export async function getEncoreCallbackListenerInstance(
+  ctx: Context,
+  name: string
+) {
+  const serviceAccessToken = await ctx.getServiceAccessToken(SERVICE_ID);
+  const instance: EyevinnEncoreCallbackListener = await getInstance(
+    ctx,
+    SERVICE_ID,
+    name,
+    serviceAccessToken
+  );
+  if (!instance) {
+    throw new Error(`Encore Callback Listener Instance ${name} not found`);
+  }
+  return {
+    url: new URL('/encoreCallback', instance.url).toString()
+  };
+}

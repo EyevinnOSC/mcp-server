@@ -61,3 +61,22 @@ export async function createMinioInstance(
     secretAccessKey: instance.RootPassword || ''
   };
 }
+
+export async function getMinioInstance(ctx: Context, name: string) {
+  const serviceAccessToken = await ctx.getServiceAccessToken(SERVICE_ID);
+  const instance: MinioMinio = await getInstance(
+    ctx,
+    SERVICE_ID,
+    name,
+    serviceAccessToken
+  );
+  if (!instance) {
+    throw new Error(`Minio Instance ${name} not found`);
+  }
+  return {
+    name: instance.name,
+    endpoint: instance.url,
+    accessKeyId: 'root',
+    secretAccessKey: instance.RootPassword || ''
+  };
+}

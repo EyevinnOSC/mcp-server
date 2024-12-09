@@ -29,13 +29,20 @@ export const StorageBucket = z.object({
 });
 export type StorageBucket = z.infer<typeof StorageBucket>;
 
+export const CreateVodPackage = z.object({
+  pipeline: z
+    .string()
+    .regex(/^[a-z0-9]+$/)
+    .describe('Name of the pipeline'),
+  source: z.string().describe('Source video URL')
+});
+export type CreateVodPackage = z.infer<typeof CreateVodPackage>;
+
 export const CreateVodPipelineSchema = z.object({
   name: z
     .string()
     .regex(/^[a-z0-9]+$/)
-    .describe('Name of the pipeline'),
-  redisUrl: z.string().describe('Redis URL'),
-  output: StorageBucket.describe('Storage bucket')
+    .describe('Name of the pipeline')
 });
 export type CreateVodPipelineSchema = z.infer<typeof CreateVodPipelineSchema>;
 

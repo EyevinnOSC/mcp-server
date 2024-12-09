@@ -43,3 +43,17 @@ export async function createEncorePackager(
   }
   return instance;
 }
+
+export async function getEncorePackager(ctx: Context, name: string) {
+  const serviceAccessToken = await ctx.getServiceAccessToken(SERVICE_ID);
+  const instance: EyevinnEncorePackager = await getInstance(
+    ctx,
+    SERVICE_ID,
+    name,
+    serviceAccessToken
+  );
+  if (!instance) {
+    throw new Error(`Encore Pckager Instance ${name} not found`);
+  }
+  return instance;
+}

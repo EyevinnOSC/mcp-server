@@ -3,18 +3,27 @@ import { z } from 'zod';
 import {
   CreateBucketSchema,
   CreateDatabaseSchema,
+  CreateVodPackage,
   CreateVodPipelineSchema,
   RemoveVodPipelineSchema,
   StorageBucket
 } from '../schemas.js';
 import { createValkeyInstance } from '../resources/valkey_io_valkey.js';
-import { Context, removeInstance } from '@osaas/client-core';
+import { Context } from '@osaas/client-core';
 import { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
-import { createMinioInstance } from '../resources/minio_minio.js';
-import { createEncoreInstance } from '../resources/encore.js';
+import {
+  createMinioInstance,
+  getMinioInstance
+} from '../resources/minio_minio.js';
+import { getEncoreInstance } from '../resources/encore.js';
 import { createApacheCouchdbInstance } from '@osaas/client-services';
-import { createEncoreCallbackListenerInstance } from '../resources/encore_callback_listener.js';
-import { createEncorePackager } from '../resources/encore_packager.js';
+import { getEncoreCallbackListenerInstance } from '../resources/encore_callback_listener.js';
+import { getEncorePackager } from '../resources/encore_packager.js';
+import {
+  createVod,
+  createVodPipeline,
+  removeVodPipeline
+} from '@osaas/client-transcode';
 
 export function listOscTools() {
   return [
@@ -29,6 +38,12 @@ export function listOscTools() {
       description:
         'Create an S3 compatible bucket in Eyevinn Open Source Cloud',
       inputSchema: zodToJsonSchema(CreateBucketSchema)
+    },
+    {
+      name: 'osc_create_vod',
+      description:
+        'Create a VOD package using a VOD pipeline in Eyevinn Open Source Cloud',
+      inputSchema: zodToJsonSchema(CreateVodPackage)
     },
     {
       name: 'osc_create_vod_pipeline',
@@ -70,14 +85,18 @@ export async function handleOscToolRequest(
         );
         return { toolResult: { endpoint, accessKeyId, secretAccessKey } };
       }
+      case 'osc_create_vod': {
+        const args = CreateVodPackage.parse(request.params.arguments);
+        const pipeline = await getVodPipeline(args.pipeline, context);
+        if (!pipeline) {
+          throw new Error(`Pipeline not found: ${args.pipeline}`);
+        }
+        const vodPackage = await createVod(pipeline, args.source, context);
+        return { toolResult: vodPackage };
+      }
       case 'osc_create_vod_pipeline': {
         const args = CreateVodPipelineSchema.parse(request.params.arguments);
-        const pipeline = await createVodPipeline(
-          args.name,
-          args.redisUrl,
-          args.output,
-          context
-        );
+        const pipeline = await createVodPipeline(args.name, context);
         return { toolResult: pipeline };
       }
       case 'osc_remove_vod_pipeline': {
@@ -135,52 +154,17 @@ export async function createRedisInstance(name: string, context: Context) {
   return await createValkeyInstance(context, name);
 }
 
-export async function createVodPipeline(
-  name: string,
-  redisUrl: string,
-  storage: StorageBucket,
-  context: Context
-) {
-  const transcoder = await createEncoreInstance(context, name);
-  const encoreCallback = await createEncoreCallbackListenerInstance(
-    context,
-    name,
-    redisUrl,
-    transcoder.url
-  );
-  const packager = await createEncorePackager(
-    context,
-    name,
-    redisUrl,
-    `s3://${name}/`,
-    storage.accessKeyId,
-    storage.secretAccessKey,
-    storage.endpoint
-  );
+export async function getVodPipeline(name: string, context: Context) {
+  const transcoder = await getEncoreInstance(context, name);
+  const encoreCallback = await getEncoreCallbackListenerInstance(context, name);
+  const storage = await getMinioInstance(context, name);
+  const packager = await getEncorePackager(context, name);
+
   return {
+    name,
     jobs: transcoder.jobs,
     callbackUrl: encoreCallback.url,
-    output: packager.OutputFolder
+    output: packager.OutputFolder,
+    endpoint: storage.endpoint
   };
-}
-
-export async function removeVodPipeline(name: string, context: Context) {
-  await removeInstance(
-    context,
-    'encore',
-    name,
-    await context.getServiceAccessToken('encore')
-  );
-  await removeInstance(
-    context,
-    'eyevinn-encore-callback-listener',
-    name,
-    await context.getServiceAccessToken('eyevinn-encore-callback-listener')
-  );
-  await removeInstance(
-    context,
-    'eyevinn-encore-packager',
-    name,
-    await context.getServiceAccessToken('eyevinn-encore-packager')
-  );
 }
