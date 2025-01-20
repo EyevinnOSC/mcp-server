@@ -2,6 +2,8 @@
 
 MCP Server for [Eyevinn Open Source Cloud](www.osaas.io) API, enabling creation of solutions based on open web services. Web services based on open source where the creator gets a share of the revenue the platform generates. No vendor-lock in as the web services are based on open source.
 
+<a href="https://glama.ai/mcp/servers/ku9s6ow21e"><img width="380" height="200" src="https://glama.ai/mcp/servers/ku9s6ow21e/badge" alt="Eyevinn Open Source Cloud Server MCP server" /></a>
+
 ### Features
 
 - **Database Setup**: Create and setup an SQL-, NoSQL- or memory-database based on open source made available as an open web service.
