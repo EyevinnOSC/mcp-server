@@ -1,0 +1,17 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - oscAccessToken
+    properties:
+      oscAccessToken:
+        type: string
+        description: The Personal Access Token for the Eyevinn Open Source Cloud API.
+  commandFunction:
+    # A function that produces the CLI command to start the MCP on stdio.
+    |-
+    config => ({command: 'node', args: ['dist/index.js'], env: {OSC_ACCESS_TOKEN: config.oscAccessToken}})
