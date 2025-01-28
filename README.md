@@ -1,5 +1,7 @@
 # Eyevinn Open Source Cloud MCP Server
 
+[![smithery badge](https://smithery.ai/badge/@osaas/mcp-server)](https://smithery.ai/server/@osaas/mcp-server)
+
 MCP Server for [Eyevinn Open Source Cloud](www.osaas.io) API, enabling creation of solutions based on open web services. Web services based on open source where the creator gets a share of the revenue the platform generates. No vendor-lock in as the web services are based on open source.
 
 ### Features
@@ -33,6 +35,14 @@ MCP Server for [Eyevinn Open Source Cloud](www.osaas.io) API, enabling creation 
    - Returns: REST Endpoint for submitting jobs.
 
 ## Setup
+
+### Installing via Smithery
+
+To install Eyevinn Open Source Cloud MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@osaas/mcp-server):
+
+```bash
+npx -y @smithery/cli install @osaas/mcp-server --client claude
+```
 
 ### Personal Access Token
 
