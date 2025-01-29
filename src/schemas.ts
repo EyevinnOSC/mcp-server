@@ -50,3 +50,8 @@ export const RemoveVodPipelineSchema = z.object({
   name: z.string().describe('Name of the pipeline')
 });
 export type RemoveVodPipelineSchema = z.infer<typeof CreateVodPipelineSchema>;
+
+export const CreateTestAdServerSchema = z.object({
+  name: z.string().describe('Name of the ad server')
+});
+export type CreateTestAdServerSchema = z.infer<typeof CreateTestAdServerSchema>;

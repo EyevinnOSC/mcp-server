@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   CreateBucketSchema,
   CreateDatabaseSchema,
+  CreateTestAdServerSchema,
   CreateVodPackage,
   CreateVodPipelineSchema,
   RemoveVodPipelineSchema,
@@ -16,7 +17,10 @@ import {
   getMinioInstance
 } from '../resources/minio_minio.js';
 import { getEncoreInstance } from '../resources/encore.js';
-import { createApacheCouchdbInstance } from '@osaas/client-services';
+import {
+  createApacheCouchdbInstance,
+  createEyevinnTestAdserverInstance
+} from '@osaas/client-services';
 import { getEncoreCallbackListenerInstance } from '../resources/encore_callback_listener.js';
 import { getEncorePackager } from '../resources/encore_packager.js';
 import {
@@ -54,6 +58,11 @@ export function listOscTools() {
       name: 'osc_remove_vod_pipeline',
       description: 'Remove a VOD pipeline in Eyevinn Open Source Cloud',
       inputSchema: zodToJsonSchema(RemoveVodPipelineSchema)
+    },
+    {
+      name: 'osc_create_testadserver',
+      description: 'Create a test ad server in Eyevinn Open Source Cloud',
+      inputSchema: zodToJsonSchema(CreateTestAdServerSchema)
     }
   ];
 }
@@ -103,6 +112,13 @@ export async function handleOscToolRequest(
         const args = RemoveVodPipelineSchema.parse(request.params.arguments);
         await removeVodPipeline(args.name, context);
         return { toolResult: 'removed' };
+      }
+      case 'osc_create_testadserver': {
+        const args = CreateTestAdServerSchema.parse(request.params.arguments);
+        const adserver = await createEyevinnTestAdserverInstance(context, {
+          name: args.name
+        });
+        return { toolResult: adserver };
       }
 
       default:
