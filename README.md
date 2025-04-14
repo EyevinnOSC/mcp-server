@@ -1,36 +1,11 @@
 # Eyevinn Open Source Cloud MCP Server
 
-MCP Server for [Eyevinn Open Source Cloud](www.osaas.io) API, enabling creation of solutions based on open web services. Web services based on open source where the creator gets a share of the revenue the platform generates. No vendor-lock in as the web services are based on open source.
+This MCP server provides MCP tools for [Eyevinn Open Source Cloud](www.osaas.io) that requires local computer access, for example to upload a file to a storage bucket in OSC. MCP tools for architecting and building solutions with OSC is provided by the remote MCP endpoint that can be accessed using the [OSC remote MCP client](https://www.npmjs.com/package/@osaas/client-mcp).
+
 
 ### Features
 
-- **Database Setup**: Create and setup an SQL-, NoSQL- or memory-database based on open source made available as an open web service.
-- **Storage Setup**: Create an S3 compatible storage bucket based on open source made available as an open web service.
-- **VOD Pipeline**: Create a pipeline for transcoding and packaging files for VOD distribution.
-
-![screenshot](screenshot.png)
-
-![screenshot-vod](screenshot-vod.png)
-
-## Tools
-
-1. `osc_create_db`
-   - Create a new database instance
-   - Inputs:
-     - `name` (string): Name of database instance
-     - `type` (string): Type of database (SQL, NoSQL or MemoryDb)
-   - Returns: Connection string to database
-2. `osc_create_bucket`
-   - Create a storage bucket
-   - Inputs:
-     - `name` (string): Name of bucket
-   - Returns: Endpoint and credentials to bucket
-3. `osc_create_vod_pipeline`
-   - Create a VOD transcoding and packaging pipeline
-   - Inputs:
-     - `name` (string): Name of pipeline
-     - `output` (string): Name of bucket to place the files
-   - Returns: REST Endpoint for submitting jobs.
+- Upload a file to a MinIO storage bucket in OSC.
 
 ## Setup
 
