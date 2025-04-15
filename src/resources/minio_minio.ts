@@ -3,6 +3,7 @@ import { delay, waitForInstanceReady } from './util.js';
 import * as Minio from 'minio';
 import { MinioMinio, MinioMinioConfig } from '@osaas/client-services';
 import { randomBytes } from 'crypto';
+import mime from 'mime-types';
 
 const SERVICE_ID = 'minio-minio';
 
@@ -79,4 +80,34 @@ export async function getMinioInstance(ctx: Context, name: string) {
     accessKeyId: 'root',
     secretAccessKey: instance.RootPassword || ''
   };
+}
+
+export async function uploadFileToMinioBucket(
+  endpoint: string,
+  accessKeyId: string,
+  secretAccessKey: string,
+  bucket: string,
+  objectKey: string,
+  filePath: string
+) {
+  const minioClient = new Minio.Client({
+    endPoint: new URL(endpoint).hostname,
+    accessKey: accessKeyId,
+    secretKey: secretAccessKey
+  });
+
+  // Get mime type based on file extension
+  const contentType = mime.lookup(filePath) || 'application/octet-stream';
+
+  const metaData = {
+    'Content-Type': contentType
+  };
+
+  const uploadedObject = await minioClient.fPutObject(
+    bucket,
+    objectKey,
+    filePath,
+    metaData
+  );
+  return uploadedObject;
 }

@@ -2,7 +2,6 @@
 
 This MCP server provides MCP tools for [Eyevinn Open Source Cloud](www.osaas.io) that requires local computer access, for example to upload a file to a storage bucket in OSC. MCP tools for architecting and building solutions with OSC is provided by the remote MCP endpoint that can be accessed using the [OSC remote MCP client](https://www.npmjs.com/package/@osaas/client-mcp).
 
-
 ### Features
 
 - Upload a file to a MinIO storage bucket in OSC.
@@ -36,8 +35,9 @@ To use this with Claude Desktop, add the following to your `claude_desktop_confi
 ## Development
 
 ```
-npm run build
-npx @modelcontextprotocol/inspector dist/index.js
+npx @modelcontextprotocol/inspector \
+  -e OSC_ACCESS_TOKEN=<osc-access-token> \
+  npx tsx src/index.ts
 ```
 
 ## License

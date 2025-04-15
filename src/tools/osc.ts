@@ -1,59 +1,20 @@
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { z } from 'zod';
-import {
-  CreateBucketSchema,
-  CreateDatabaseSchema,
-  CreateVodPackage,
-  CreateVodPipelineSchema,
-  RemoveVodPipelineSchema,
-  StorageBucket
-} from '../schemas.js';
-import { createValkeyInstance } from '../resources/valkey_io_valkey.js';
+import { UploadFileSchema } from '../schemas.js';
 import { Context } from '@osaas/client-core';
 import { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
 import {
-  createMinioInstance,
-  getMinioInstance
+  getMinioInstance,
+  uploadFileToMinioBucket
 } from '../resources/minio_minio.js';
-import { getEncoreInstance } from '../resources/encore.js';
-import { createApacheCouchdbInstance } from '@osaas/client-services';
-import { getEncoreCallbackListenerInstance } from '../resources/encore_callback_listener.js';
-import { getEncorePackager } from '../resources/encore_packager.js';
-import {
-  createVod,
-  createVodPipeline,
-  removeVodPipeline
-} from '@osaas/client-transcode';
 
 export function listOscTools() {
   return [
     {
-      name: 'osc_create_db',
+      name: 'osc_upload_file',
       description:
-        'Create a new database instance in Eyevinn Open Source Cloud',
-      inputSchema: zodToJsonSchema(CreateDatabaseSchema)
-    },
-    {
-      name: 'osc_create_bucket',
-      description:
-        'Create an S3 compatible bucket in Eyevinn Open Source Cloud',
-      inputSchema: zodToJsonSchema(CreateBucketSchema)
-    },
-    {
-      name: 'osc_create_vod',
-      description:
-        'Create a VOD package using a VOD pipeline in Eyevinn Open Source Cloud',
-      inputSchema: zodToJsonSchema(CreateVodPackage)
-    },
-    {
-      name: 'osc_create_vod_pipeline',
-      description: 'Create a VOD pipeline in Eyevinn Open Source Cloud',
-      inputSchema: zodToJsonSchema(CreateVodPipelineSchema)
-    },
-    {
-      name: 'osc_remove_vod_pipeline',
-      description: 'Remove a VOD pipeline in Eyevinn Open Source Cloud',
-      inputSchema: zodToJsonSchema(RemoveVodPipelineSchema)
+        'Upload a file to Eyevinn Open Source Cloud. This is a placeholder and not implemented yet.',
+      inputSchema: zodToJsonSchema(UploadFileSchema)
     }
   ];
 }
@@ -68,41 +29,18 @@ export async function handleOscToolRequest(
     }
 
     switch (request.params.name) {
-      case 'osc_create_db': {
-        const args = CreateDatabaseSchema.parse(request.params.arguments);
-        const connectionUrl = await createDatabase(
+      case 'osc_upload_file': {
+        const args = UploadFileSchema.parse(request.params.arguments);
+        const uploaded = await uploadFile(
           args.name,
-          args.type,
+          args.bucket,
+          args.objectKey,
+          args.file,
           context
         );
-        return { toolResult: connectionUrl };
-      }
-      case 'osc_create_bucket': {
-        const args = CreateBucketSchema.parse(request.params.arguments);
-        const { endpoint, accessKeyId, secretAccessKey } = await createBucket(
-          args.name,
-          context
-        );
-        return { toolResult: { endpoint, accessKeyId, secretAccessKey } };
-      }
-      case 'osc_create_vod': {
-        const args = CreateVodPackage.parse(request.params.arguments);
-        const pipeline = await getVodPipeline(args.pipeline, context);
-        if (!pipeline) {
-          throw new Error(`Pipeline not found: ${args.pipeline}`);
-        }
-        const vodPackage = await createVod(pipeline, args.source, context);
-        return { toolResult: vodPackage };
-      }
-      case 'osc_create_vod_pipeline': {
-        const args = CreateVodPipelineSchema.parse(request.params.arguments);
-        const pipeline = await createVodPipeline(args.name, context);
-        return { toolResult: pipeline };
-      }
-      case 'osc_remove_vod_pipeline': {
-        const args = RemoveVodPipelineSchema.parse(request.params.arguments);
-        await removeVodPipeline(args.name, context);
-        return { toolResult: 'removed' };
+        return {
+          toolResult: `File ${args.file} uploaded to s3://${args.bucket}/${args.objectKey} on Minio instance '${args.name}' (${uploaded.etag})`
+        };
       }
 
       default:
@@ -121,50 +59,23 @@ export async function handleOscToolRequest(
   }
 }
 
-export async function createDatabase(
+export async function uploadFile(
   name: string,
-  type: string,
+  bucket: string,
+  objectKey: string,
+  file: string,
   context: Context
 ) {
-  switch (type) {
-    case 'MemoryDb': {
-      const connectionUrl = await createValkeyInstance(context, name);
-      return connectionUrl;
-    }
-    case 'NoSQL': {
-      const instance = await createApacheCouchdbInstance(context, {
-        name,
-        AdminPassword: 'admin'
-      });
-      return instance.url;
-    }
-    default:
-      throw new Error(`Unknown database type: ${type}`);
+  const instance = await getMinioInstance(context, name);
+  if (!instance) {
+    throw new Error(`Minio instance with name ${name} not found`);
   }
-}
-
-export async function createBucket(
-  name: string,
-  context: Context
-): Promise<StorageBucket> {
-  return await createMinioInstance(context, name);
-}
-
-export async function createRedisInstance(name: string, context: Context) {
-  return await createValkeyInstance(context, name);
-}
-
-export async function getVodPipeline(name: string, context: Context) {
-  const transcoder = await getEncoreInstance(context, name);
-  const encoreCallback = await getEncoreCallbackListenerInstance(context, name);
-  const storage = await getMinioInstance(context, name);
-  const packager = await getEncorePackager(context, name);
-
-  return {
-    name,
-    jobs: transcoder.jobs,
-    callbackUrl: encoreCallback.url,
-    output: packager.OutputFolder,
-    endpoint: storage.endpoint
-  };
+  return await uploadFileToMinioBucket(
+    instance.endpoint,
+    instance.accessKeyId,
+    instance.secretAccessKey,
+    bucket,
+    objectKey,
+    file
+  );
 }
