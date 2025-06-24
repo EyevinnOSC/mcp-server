@@ -111,3 +111,43 @@ export async function uploadFileToMinioBucket(
   );
   return uploadedObject;
 }
+
+export async function listFilesInMinioBucket(
+  endpoint: string,
+  accessKeyId: string,
+  secretAccessKey: string,
+  bucket: string
+): Promise<string[]> {
+  const minioClient = new Minio.Client({
+    endPoint: new URL(endpoint).hostname,
+    accessKey: accessKeyId,
+    secretKey: secretAccessKey
+  });
+
+  const objects = await minioClient.listObjects(bucket, '', true);
+  const fileList: string[] = [];
+  for await (const obj of objects) {
+    fileList.push(obj.name);
+  }
+  return fileList;
+}
+
+export async function createMinioBucket(
+  endpoint: string,
+  accessKeyId: string,
+  secretAccessKey: string,
+  bucket: string
+): Promise<void> {
+  const minioClient = new Minio.Client({
+    endPoint: new URL(endpoint).hostname,
+    accessKey: accessKeyId,
+    secretKey: secretAccessKey
+  });
+
+  const bucketExists = await minioClient.bucketExists(bucket);
+  if (!bucketExists) {
+    await minioClient.makeBucket(bucket);
+  } else {
+    throw new Error(`Bucket ${bucket} already exists`);
+  }
+}

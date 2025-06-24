@@ -11,3 +11,23 @@ export const UploadFileSchema = z.object({
 });
 
 export type UploadFileSchema = z.infer<typeof UploadFileSchema>;
+
+export const ListFilesSchema = z.object({
+  name: z
+    .string()
+    .regex(/^[a-z0-9]+$/)
+    .describe('Name of the minio instance'),
+  bucket: z.string().describe('Name of the bucket')
+});
+
+export type ListFilesSchema = z.infer<typeof ListFilesSchema>;
+
+export const CreateBucketSchema = z.object({
+  name: z
+    .string()
+    .regex(/^[a-z0-9]+$/)
+    .describe('Name of the minio instance'),
+  bucket: z.string().describe('Name of the bucket to create')
+});
+
+export type CreateBucketSchema = z.infer<typeof CreateBucketSchema>;
