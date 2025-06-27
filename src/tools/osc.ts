@@ -2,6 +2,7 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import { z } from 'zod';
 import {
   CreateBucketSchema,
+  ListBucketsSchema,
   ListFilesSchema,
   UploadFileSchema
 } from '../schemas.js';
@@ -11,6 +12,7 @@ import {
   createMinioBucket,
   getMinioInstance,
   listFilesInMinioBucket,
+  listMinioBuckets,
   uploadFileToMinioBucket
 } from '../resources/minio_minio.js';
 
@@ -33,6 +35,12 @@ export function listOscTools() {
       description:
         'Create a new bucket on Eyevinn Open Source Cloud Storage (OSC) Minio instance',
       inputSchema: zodToJsonSchema(CreateBucketSchema)
+    },
+    {
+      name: 'osc_list_buckets',
+      description:
+        'List all buckets on Eyevinn Open Source Cloud Storage (OSC) Minio instance',
+      inputSchema: zodToJsonSchema(ListBucketsSchema)
     }
   ];
 }
@@ -97,6 +105,27 @@ export async function handleOscToolRequest(
         };
       }
 
+      case 'osc_list_buckets': {
+        const args = ListBucketsSchema.parse(request.params.arguments);
+        const instance = await getMinioInstance(context, args.name);
+        if (!instance) {
+          throw new Error(`Minio instance with name ${args.name} not found`);
+        }
+        const buckets = await listBuckets(args.name, context);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Buckets on MinIO instance '${args.name}':`
+            }
+          ].concat(
+            buckets.map((bucket) => ({
+              type: 'text',
+              text: bucket
+            }))
+          )
+        };
+      }
       default:
         throw new Error(`Unknown tool: ${request.params.name}`);
     }
@@ -165,5 +194,17 @@ export async function createBucket(
     instance.accessKeyId,
     instance.secretAccessKey,
     bucket
+  );
+}
+
+export async function listBuckets(name: string, context: Context) {
+  const instance = await getMinioInstance(context, name);
+  if (!instance) {
+    throw new Error(`Minio instance with name ${name} not found`);
+  }
+  return await listMinioBuckets(
+    instance.endpoint,
+    instance.accessKeyId,
+    instance.secretAccessKey
   );
 }

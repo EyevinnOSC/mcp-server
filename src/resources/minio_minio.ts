@@ -151,3 +151,18 @@ export async function createMinioBucket(
     throw new Error(`Bucket ${bucket} already exists`);
   }
 }
+
+export async function listMinioBuckets(
+  endpoint: string,
+  accessKeyId: string,
+  secretAccessKey: string
+): Promise<string[]> {
+  const minioClient = new Minio.Client({
+    endPoint: new URL(endpoint).hostname,
+    accessKey: accessKeyId,
+    secretKey: secretAccessKey
+  });
+
+  const buckets = await minioClient.listBuckets();
+  return buckets.map((bucket) => bucket.name);
+}

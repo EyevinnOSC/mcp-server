@@ -31,3 +31,11 @@ export const CreateBucketSchema = z.object({
 });
 
 export type CreateBucketSchema = z.infer<typeof CreateBucketSchema>;
+
+export const ListBucketsSchema = z.object({
+  name: z
+    .string()
+    .regex(/^[a-z0-9]+$/)
+    .describe('Name of the minio instance')
+});
+export type ListBucketsSchema = z.infer<typeof ListBucketsSchema>;
