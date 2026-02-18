@@ -1,7 +1,8 @@
 {
   "name": "@osaas/mcp-server",
   "version": "1.2.0",
-  "description": "MCP server for using the Eyevinn Open Source Cloud API",
+  "description": "DEPRECATED - Use https://www.osaas.io/mcp instead. MCP server for using the Eyevinn Open Source Cloud API",
+  "deprecated": "This package is deprecated. Use the Custom Connector at https://www.osaas.io/mcp instead.",
   "license": "MIT",
   "author": "Eyevinn Technology AB (https://www.eyevinn.se)",
   "homepage": "https://www.osaas.io",
